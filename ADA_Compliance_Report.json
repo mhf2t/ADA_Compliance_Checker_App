@@ -1,0 +1,65 @@
+[
+    {
+        "EntityID": null,
+        "Element": "Toilets",
+        "Rule": "403.5.1",
+        "Result": "Fail",
+        "Description": "No clear 5' circle space (blocked by plumbing fixtures or walls)",
+        "RoomName": "Restroom X",
+        "Location": null
+    },
+    {
+        "EntityID": null,
+        "Element": "Toilets",
+        "Rule": "403.5.1",
+        "Result": "Pass",
+        "Description": "Clear 5' circle found at (-67.543879858, -32.264273767, 3.000000000)",
+        "RoomName": "Restroom Y",
+        "Location": "(-67.543879858, -32.264273767, 3.000000000)"
+    },
+    {
+        "EntityID": null,
+        "Element": "Toilets",
+        "Rule": "403.5.1",
+        "Result": "Fail",
+        "Description": "Room has no boundary",
+        "RoomName": "P.Toilet",
+        "Location": null
+    },
+    {
+        "EntityID": null,
+        "Element": "Toilets",
+        "Rule": "403.5.1",
+        "Result": "Fail",
+        "Description": "Room has no boundary",
+        "RoomName": "P.Toilet",
+        "Location": null
+    },
+    {
+        "EntityID": null,
+        "Element": "Toilets",
+        "Rule": "403.5.1",
+        "Result": "Pass",
+        "Description": "Clear 5' circle found at (-86.847403747, -31.264273767, 3.000000000)",
+        "RoomName": "Restroom Z",
+        "Location": "(-86.847403747, -31.264273767, 3.000000000)"
+    },
+    {
+        "EntityID": null,
+        "Element": "Toilets",
+        "Rule": "403.5.1",
+        "Result": "Pass",
+        "Description": "Clear 5' circle found at (-74.384149154, -7.571756881, 3.000000000)",
+        "RoomName": "S.Toilet",
+        "Location": "(-74.384149154, -7.571756881, 3.000000000)"
+    },
+    {
+        "EntityID": null,
+        "Element": "Toilets",
+        "Rule": "403.5.1",
+        "Result": "Fail",
+        "Description": "No clear 5' circle space (blocked by plumbing fixtures or walls)",
+        "RoomName": "Toilet 01",
+        "Location": null
+    }
+]
