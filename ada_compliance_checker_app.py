@@ -5,10 +5,10 @@
 # iLab, Architectural Studies, University of Missouri
 # ============================================================
 
+
 import streamlit as st
 import json
 import pandas as pd
-import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="ADA Compliance Checker", page_icon="✅", layout="wide")
 
@@ -22,7 +22,7 @@ if uploaded_file:
     data = json.load(uploaded_file)
     df = pd.DataFrame(data)
 
-    # ✅ Ensure essential columns exist
+    # ✅ Ensure essential columns exist for ANY ADA rule check
     defaults = {
         "Element": "Unknown Element",
         "Name": "Unknown",
@@ -30,14 +30,16 @@ if uploaded_file:
         "Rule": "N/A",
         "Result": "Unknown",
         "Description": "-",
+        "ValueMeasured": "",
+        "ValueRequired": "",
         "Comments": ""
     }
     
-    for col, val in defaults.items():
+    for col, default_val in defaults.items():
         if col not in df.columns:
-            df[col] = val
+            df[col] = default_val
 
-    # ✅ Add emoji status
+    # ✅ Emoji display for readability
     df["✅/❌"] = df["Result"].apply(lambda x: "✅" if str(x).lower() == "pass" else "❌")
 
     # ============ Sidebar Filters ============
@@ -45,12 +47,13 @@ if uploaded_file:
 
     type_filter = st.sidebar.multiselect(
         "Element Type",
-        sorted(df["Element"].unique()),
+        options=sorted(df["Element"].unique()),
         default=list(df["Element"].unique())
     )
+
     result_filter = st.sidebar.multiselect(
         "Compliance Result",
-        ["Pass", "Fail", "Unknown"],
+        options=["Pass", "Fail", "Unknown"],
         default=["Pass", "Fail"]
     )
 
@@ -59,37 +62,30 @@ if uploaded_file:
         (df["Result"].isin(result_filter))
     ]
 
-    # ✅ Display Table
+    # ✅ Display Results
     st.dataframe(
         filtered_df[[
-            "✅/❌", "Element", "Name", "Location",
-            "Rule", "Result", "Description"
+            "✅/❌", "Element", "Name", "Location", 
+            "Rule", "Result", "Description", 
+            "ValueMeasured", "ValueRequired", "Comments"
         ]],
         width="stretch"
     )
 
     st.success(f"✅ Showing {len(filtered_df)} compliance checks")
 
-    # ================== 📊 CHART SECTION ==================
-    st.subheader("📊 Compliance Summary")
-
-    result_counts = filtered_df["Result"].value_counts()
-    labels = result_counts.index.tolist()
-    sizes = result_counts.values.tolist()
-
-    fig, ax = plt.subplots()
-    ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90)
-    ax.axis("equal")
-
-    st.pyplot(fig)
-    # ======================================================
-
-    # ✅ Download filtered JSON
-    json_output = filtered_df.to_json(orient="records", indent=4)
-    st.download_button("💾 Download Filtered ADA Report", data=json_output, file_name="Filtered_ADA_Report.json")
+    # ✅ JSON export button — filtered report
+    json_data = filtered_df.to_json(orient="records", indent=4)
+    st.download_button(
+        label="💾 Download Filtered ADA Report",
+        data=json_data,
+        file_name="Filtered_ADA_Report.json"
+    )
 
 else:
     st.info("⬆️ Upload an ADA JSON report to begin.")
+
+
 
 
 
