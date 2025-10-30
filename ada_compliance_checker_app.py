@@ -30,7 +30,7 @@ if uploaded_file:
 
     filtered_df = df[df["Element"].isin(elements) & df["Result"].isin(results)]
 
-    st.dataframe(filtered_df[["✅/❌", "Element", "Rule", "Result", "Description", "RoomName", "Location"]], use_container_width=True)
+    st.dataframe(filtered_df[["✅/❌", "Element", "Rule", "Result", "Description", "RoomName/ElementName", "Location"]], use_container_width=True)
 
     st.success(f"Showing {len(filtered_df)} results")
 
@@ -39,6 +39,7 @@ if uploaded_file:
 
 else:
     st.info("⬆️ Upload your ADA_Compliance_Report.json file to get started.")
+
 
 
 
