@@ -66,8 +66,7 @@ if uploaded_file:
     st.dataframe(
         filtered_df[[
             "✅/❌", "Element", "Name", "Location", 
-            "Rule", "Result", "Description", 
-            "ValueMeasured", "ValueRequired", "Comments"
+            "Rule", "Result", "Description",
         ]],
         width="stretch"
     )
@@ -84,6 +83,7 @@ if uploaded_file:
 
 else:
     st.info("⬆️ Upload an ADA JSON report to begin.")
+
 
 
 
