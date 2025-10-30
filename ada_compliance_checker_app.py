@@ -14,7 +14,7 @@ st.set_page_config(page_title="ADA Compliance Checker", page_icon="✅", layout=
 st.title("♿ ADA Compliance Checker Dashboard")
 st.caption("Developed by Md Obidul Haque | Mentored by Dr. Jong Bum Kim")
 st.caption("iLab, Architectural Studies, University of Missouri")
-st.markdown("Visualize and filter compliance results exported from Dynamo.")
+st.markdown("Visualize and filter compliance results.")
 
 uploaded_file = st.file_uploader("📁 Upload ADA_Compliance_Report.json", type=["json"])
 
@@ -39,3 +39,4 @@ if uploaded_file:
 
 else:
     st.info("⬆️ Upload your ADA_Compliance_Report.json file to get started.")
+
