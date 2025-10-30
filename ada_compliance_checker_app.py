@@ -14,7 +14,6 @@ st.set_page_config(page_title="ADA Compliance Checker", page_icon="✅", layout=
 st.title("♿ ADA Compliance Checker Dashboard")
 st.caption("Developed by Md Obidul Haque | Mentored by Dr. Jong Bum Kim")
 st.caption("iLab, Architectural Studies, University of Missouri")
-st.markdown("Visualize and filter compliance results.")
 
 uploaded_file = st.file_uploader("📁 Upload ADA_Compliance_Report.json", type=["json"])
 
@@ -22,23 +21,68 @@ if uploaded_file:
     data = json.load(uploaded_file)
     df = pd.DataFrame(data)
 
+    # ✅ Ensure essential columns exist for ANY ADA rule check
+    defaults = {
+        "Element": "Unknown Element",
+        "Name": "Unknown",
+        "Location": "Unknown",
+        "Rule": "N/A",
+        "Result": "Unknown",
+        "Description": "-",
+        "ValueMeasured": "",
+        "ValueRequired": "",
+        "Comments": ""
+    }
+    
+    for col, default_val in defaults.items():
+        if col not in df.columns:
+            df[col] = default_val
+
+    # ✅ Emoji display for readability
     df["✅/❌"] = df["Result"].apply(lambda x: "✅" if str(x).lower() == "pass" else "❌")
 
+    # ============ Sidebar Filters ============
     st.sidebar.header("🔍 Filters")
-    elements = st.sidebar.multiselect("Select Element Type", options=df["Element"].unique(), default=df["Element"].unique())
-    results = st.sidebar.multiselect("Select Result", options=["Pass", "Fail"], default=["Pass", "Fail"])
 
-    filtered_df = df[df["Element"].isin(elements) & df["Result"].isin(results)]
+    type_filter = st.sidebar.multiselect(
+        "Element Type",
+        options=sorted(df["Element"].unique()),
+        default=list(df["Element"].unique())
+    )
 
-    st.dataframe(filtered_df[["✅/❌", "Element", "Rule", "Result", "Description", "Name", "Location"]], use_container_width=True)
+    result_filter = st.sidebar.multiselect(
+        "Compliance Result",
+        options=["Pass", "Fail", "Unknown"],
+        default=["Pass", "Fail"]
+    )
 
-    st.success(f"Showing {len(filtered_df)} results")
+    filtered_df = df[
+        (df["Element"].isin(type_filter)) &
+        (df["Result"].isin(result_filter))
+    ]
 
-    json_str = filtered_df.to_json(orient="records", indent=4)
-    st.download_button("💾 Download Filtered JSON", data=json_str, file_name="Filtered_ADA_Report.json")
+    # ✅ Display Results
+    st.dataframe(
+        filtered_df[[
+            "✅/❌", "Element", "Name", "Location", 
+            "Rule", "Result", "Description", 
+            "ValueMeasured", "ValueRequired", "Comments"
+        ]],
+        width="stretch"
+    )
+
+    st.success(f"✅ Showing {len(filtered_df)} compliance checks")
+
+    # ✅ JSON export button — filtered report
+    json_data = filtered_df.to_json(orient="records", indent=4)
+    st.download_button(
+        label="💾 Download Filtered ADA Report",
+        data=json_data,
+        file_name="Filtered_ADA_Report.json"
+    )
 
 else:
-    st.info("⬆️ Upload your ADA_Compliance_Report.json file to get started.")
+    st.info("⬆️ Upload an ADA JSON report to begin.")
 
 
 
