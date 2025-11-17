@@ -67,20 +67,17 @@ if uploaded_files:
 
     df = pd.concat(df_list, ignore_index=True)
 
-    # Friendly naming for display
+    # Safe, robust display name
     df["Display_Name"] = df.apply(
-    lambda r: r["RoomName"] if isinstance(r["RoomName"], str) and r["RoomName"].strip()
-    else (r["Space"] if isinstance(r["Space"], str) and r["Space"].strip()
-          else r["Name"]),
-    axis=1
-)
+        lambda r: r["RoomName"] if isinstance(r["RoomName"], str) and r["RoomName"].strip()
+        else (r["Space"] if isinstance(r["Space"], str) and r["Space"].strip()
+              else r["Name"]),
+        axis=1
+    )
 
-df["Display_Location"] = df.apply(
-    lambda r: r["Location"] if isinstance(r["Location"], str) and r["Location"].strip()
-    else r["Display_Name"],
-    axis=1
-)
-    df["Status_Icon"] = df["Result"].apply(lambda x: "✅" if str(x).lower() == "pass" else "❌")
+    # Safe, robust display location
+    df["Display_Location"] = df.apply(
+        lambda r: r["Location"] if
 
     # ============================================================
     # 📊 KPI Overview
@@ -175,4 +172,5 @@ df["Display_Location"] = df.apply(
             order = sort_items(list(chart_items.keys()), direction="vertical", key="order2")
             for name in order:
                 st.plotly_chart(chart_items[name], use_container_width=True)
+
 
