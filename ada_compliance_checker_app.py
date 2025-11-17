@@ -1,24 +1,52 @@
 # ============================================================
-# ADA Compliance Checker Dashboard 
-# Developed by: Md Obidul Haque 
+# ADA Compliance Checker Dashboard (Multi-File Enhanced)
+# Developed by: Md Obidul Haque (Developer)
 # Mentored by: Dr. Jong Bum Kim
 # iLab, Architectural Studies, University of Missouri
 # ============================================================
 
+# ============================================================
+# 🔧 AUTO-INSTALL MISSING DEPENDENCIES (No requirements.txt needed)
+# ============================================================
+import importlib
+import subprocess
+import sys
 import streamlit as st
+
+required_packages = {
+    "plotly": "plotly",
+    "streamlit_sortables": "streamlit-sortables",
+    "pandas": "pandas"
+}
+
+with st.spinner("🔄 Initializing dependencies…"):
+    for module, pkg in required_packages.items():
+        try:
+            importlib.import_module(module)
+        except ImportError:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
+
+# ============================================================
+# 📦 IMPORT PACKAGES AFTER INSTALL
+# ============================================================
 import json
 import pandas as pd
 import plotly.express as px
 from streamlit_sortables import sort_items
 
-# 🔧 Page Setup
-st.set_page_config(page_title="ADA Compliance Checker", page_icon="♿", layout="wide")
 
+# ============================================================
+# 🌐 PAGE SETUP
+# ============================================================
+st.set_page_config(page_title="ADA Compliance Checker", page_icon="♿", layout="wide")
 st.title("♿ ADA Compliance Checker Dashboard")
-st.caption("Developed by Md Obidul Haque | Mentored by: Dr. Jong Bum Kim")
+st.caption("Developed by Md Obidul Haque | Mentored by Dr. Jong Bum Kim")
 st.caption("iLab, Architectural Studies, University of Missouri")
 
-# 🔧 Default column values
+
+# ============================================================
+# 🧱 DEFAULT COLUMN VALUES (for flexible JSON support)
+# ============================================================
 defaults = {
     "Element": "Unknown",
     "Name": "Unknown",
@@ -33,9 +61,10 @@ defaults = {
     "Comments": ""
 }
 
-# ==============================
-# 📁 Upload JSON Files (Collapsible)
-# ==============================
+
+# ============================================================
+# 📁 MULTI-FILE UPLOADER
+# ============================================================
 st.markdown("### 📁 Upload ADA Compliance Reports")
 
 with st.expander("➕ Click to Upload JSON Files", expanded=True):
@@ -46,6 +75,7 @@ with st.expander("➕ Click to Upload JSON Files", expanded=True):
         label_visibility="collapsed"
     )
 
+
 if uploaded_files:
     df_list = []
 
@@ -54,6 +84,7 @@ if uploaded_files:
             data = json.load(uploaded_file)
             temp_df = pd.DataFrame(data)
 
+            # add missing columns
             for col, val in defaults.items():
                 if col not in temp_df.columns:
                     temp_df[col] = val
@@ -65,43 +96,43 @@ if uploaded_files:
             st.warning(f"⚠️ Failed to load {uploaded_file.name}: {e}")
 
     if not df_list:
-        st.error("❌ No valid JSON report loaded.")
+        st.error("❌ No valid JSON report detected.")
         st.stop()
 
     df = pd.concat(df_list, ignore_index=True)
 
+    # Friendly naming for display
     df["Display_Name"] = df.apply(
-        lambda r: r["RoomName"] if r["RoomName"].strip()
-        else (r["Space"] if r["Space"].strip() else r["Name"]),
+        lambda r: r["RoomName"] if r["RoomName"].strip() else (r["Space"] if r["Space"].strip() else r["Name"]),
         axis=1
     )
-
     df["Display_Location"] = df.apply(
         lambda r: r["Location"] if r["Location"].strip() else r["Display_Name"],
         axis=1
     )
+    df["Status_Icon"] = df["Result"].apply(lambda x: "✅" if str(x).lower()=="pass" else "❌")
 
-    df["Status_Icon"] = df["Result"].apply(lambda x: "✅" if str(x).lower() == "pass" else "❌")
 
-    # ===================================
-    # 📊 KPI Overview
-    # ===================================
+    # ============================================================
+    # 📊 KPI OVERVIEW
+    # ============================================================
     st.subheader("📊 Compliance Overview")
 
     total_checks = len(df)
-    total_pass = len(df[df["Result"].str.lower() == "pass"])
-    total_fail = len(df[df["Result"].str.lower() == "fail"])
+    total_pass = len(df[df["Result"].str.lower()=="pass"])
+    total_fail = len(df[df["Result"].str.lower()=="fail"])
     pass_rate = (total_pass / total_checks * 100) if total_checks > 0 else 0
 
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Checks", total_checks)
-    col2.metric("✅ Passed", total_pass)
-    col3.metric("❌ Failed", total_fail)
-    col4.metric("Pass Rate", f"{pass_rate:.1f}%")
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Total Checks", total_checks)
+    k2.metric("✅ Passed", total_pass)
+    k3.metric("❌ Failed", total_fail)
+    k4.metric("Pass Rate", f"{pass_rate:.1f}%")
 
-    # ===================================
-    # 🔍 Filters
-    # ===================================
+
+    # ============================================================
+    # 🔍 SIDEBAR FILTERS
+    # ============================================================
     st.sidebar.header("🔍 Filters")
 
     type_filter = st.sidebar.multiselect(
@@ -123,48 +154,50 @@ if uploaded_files:
         (df["Source_File"].isin(file_filter))
     ]
 
-    # ===================================
-    # 📋 Results Table
-    # ===================================
-    st.subheader("📋 Compliance Results Table")
 
+    # ============================================================
+    # 📋 RESULTS TABLE
+    # ============================================================
+    st.subheader("📋 Compliance Results Table")
     st.dataframe(
         filtered_df[[
-            "Status_Icon", "Source_File", "Element", "Display_Name",
-            "Display_Location", "Rule", "Result", "Description"
+            "Status_Icon", "Source_File", "Element",
+            "Display_Name", "Display_Location",
+            "Rule", "Result", "Description"
         ]],
         use_container_width=True
     )
-
     st.info(f"📌 Showing {len(filtered_df)} filtered results")
 
+
+    # DOWNLOAD FILTERED JSON
     st.download_button(
         label="💾 Download Filtered ADA Report",
         data=filtered_df.to_json(orient="records", indent=4),
         file_name="Filtered_ADA_Report.json"
     )
 
-    # ===================================
-    # 📈 Analytics Charts
-    # ===================================
-    controls1, controls2, controls3 = st.columns([1, 1, 2])
 
-    with controls1:
+    # ============================================================
+    # 📈 ANALYTICS CHARTS (DRAG-AND-DROP)
+    # ============================================================
+    colA, colB, colC = st.columns([1, 1, 2])
+
+    with colA:
         show_charts = st.toggle("📈 Analytics", value=False)
 
-    with controls2:
+    with colB:
         orientation = st.radio(
             "Bar Orientation", ["Vertical", "Horizontal"],
-            horizontal=True,
-            label_visibility="collapsed"
+            horizontal=True, label_visibility="collapsed"
         )
 
-    with controls3:
+    with colC:
         layout = st.radio(
             "Layout Mode", ["Side-by-Side", "Vertical Stack"],
-            horizontal=True,
-            label_visibility="collapsed"
+            horizontal=True, label_visibility="collapsed"
         )
+
 
     if show_charts:
         color_map = {
@@ -183,24 +216,28 @@ if uploaded_files:
         bar_df = filtered_df.groupby(["Element", "Result"]).size().reset_index(name="Count")
         bar_fig = px.bar(
             bar_df,
-            x="Element" if orientation == "Vertical" else "Count",
-            y="Count" if orientation == "Vertical" else "Element",
+            x="Element" if orientation=="Vertical" else "Count",
+            y="Count" if orientation=="Vertical" else "Element",
             color="Result",
             title="Compliance by Element Type",
             barmode="group",
-            orientation="v" if orientation == "Vertical" else "h",
+            orientation="v" if orientation=="Vertical" else "h",
             color_discrete_map=color_map
         )
 
         st.subheader("📊 Drag charts to rearrange")
-        chart_items = {"Pass vs Fail Distribution": pie_fig, "Compliance by Element Type": bar_fig}
+
+        chart_items = {
+            "Pass vs Fail Distribution": pie_fig,
+            "Compliance by Element Type": bar_fig
+        }
 
         if layout == "Side-by-Side":
-            order = sort_items(list(chart_items.keys()), direction="horizontal", key="charts_h")
-            colA, colB = st.columns(2)
+            order = sort_items(list(chart_items.keys()), direction="horizontal", key="sort_h")
+            c1, c2 = st.columns(2)
             for i, name in enumerate(order):
-                (colA if i == 0 else colB).plotly_chart(chart_items[name], use_container_width=True)
+                (c1 if i == 0 else c2).plotly_chart(chart_items[name], use_container_width=True)
         else:
-            order = sort_items(list(chart_items.keys()), direction="vertical", key="charts_v")
+            order = sort_items(list(chart_items.keys()), direction="vertical", key="sort_v")
             for name in order:
                 st.plotly_chart(chart_items[name], use_container_width=True)
