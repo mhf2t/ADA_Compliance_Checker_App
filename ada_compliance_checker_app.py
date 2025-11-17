@@ -74,7 +74,6 @@ if uploaded_files:
               else r["Name"]),
         axis=1
     )
-
     # Safe, robust display location
     df["Display_Location"] = df.apply(
         lambda r: r["Location"] if
@@ -172,5 +171,6 @@ if uploaded_files:
             order = sort_items(list(chart_items.keys()), direction="vertical", key="order2")
             for name in order:
                 st.plotly_chart(chart_items[name], use_container_width=True)
+
 
 
