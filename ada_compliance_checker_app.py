@@ -74,9 +74,17 @@ if uploaded_files:
               else r["Name"]),
         axis=1
     )
+
     # Safe, robust display location
     df["Display_Location"] = df.apply(
-        lambda r: r["Location"] if
+        lambda r: r["Location"] if isinstance(r["Location"], str) and r["Location"].strip()
+        else r["Display_Name"],
+        axis=1
+    )
+    # Status icon column
+    df["Status_Icon"] = df["Result"].apply(
+        lambda x: "✅" if str(x).lower() == "pass" else "❌"
+    )
 
     # ============================================================
     # 📊 KPI Overview
@@ -171,6 +179,7 @@ if uploaded_files:
             order = sort_items(list(chart_items.keys()), direction="vertical", key="order2")
             for name in order:
                 st.plotly_chart(chart_items[name], use_container_width=True)
+
 
 
 
