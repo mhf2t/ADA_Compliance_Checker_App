@@ -1,6 +1,6 @@
 # ============================================================
 # ADA Compliance Checker Dashboard 
-# Developed by: Md Obidul Haque
+# Developed by: Md Obidul Haque 
 # Mentored by: Dr. Jong Bum Kim
 # iLab, Architectural Studies, University of Missouri
 # ============================================================
@@ -18,7 +18,7 @@ st.title("♿ ADA Compliance Checker Dashboard")
 st.caption("Developed by Md Obidul Haque | Mentored by: Dr. Jong Bum Kim")
 st.caption("iLab, Architectural Studies, University of Missouri")
 
-# 🔧 Default column values (ensures JSON from any category works)
+# 🔧 Default column values
 defaults = {
     "Element": "Unknown",
     "Name": "Unknown",
@@ -34,7 +34,7 @@ defaults = {
 }
 
 # ==============================
-# 📁 Upload JSON (Collapsible)
+# 📁 Upload JSON Files (Collapsible)
 # ==============================
 st.markdown("### 📁 Upload ADA Compliance Reports")
 
@@ -54,10 +54,9 @@ if uploaded_files:
             data = json.load(uploaded_file)
             temp_df = pd.DataFrame(data)
 
-            # Add missing columns
-            for col, default_val in defaults.items():
+            for col, val in defaults.items():
                 if col not in temp_df.columns:
-                    temp_df[col] = default_val
+                    temp_df[col] = val
 
             temp_df["Source_File"] = uploaded_file.name
             df_list.append(temp_df)
@@ -66,22 +65,23 @@ if uploaded_files:
             st.warning(f"⚠️ Failed to load {uploaded_file.name}: {e}")
 
     if not df_list:
-        st.error("❌ No valid JSON data read. Please upload valid reports.")
+        st.error("❌ No valid JSON report loaded.")
         st.stop()
 
     df = pd.concat(df_list, ignore_index=True)
 
-    # Readable "Display Name" & "Location"
     df["Display_Name"] = df.apply(
-        lambda r: r["RoomName"] if r["RoomName"].strip() else (r["Space"] if r["Space"].strip() else r["Name"]),
+        lambda r: r["RoomName"] if r["RoomName"].strip()
+        else (r["Space"] if r["Space"].strip() else r["Name"]),
         axis=1
     )
+
     df["Display_Location"] = df.apply(
         lambda r: r["Location"] if r["Location"].strip() else r["Display_Name"],
         axis=1
     )
 
-    df["Status_Icon"] = df["Result"].apply(lambda x: "✅" if str(x).lower()=="pass" else "❌")
+    df["Status_Icon"] = df["Result"].apply(lambda x: "✅" if str(x).lower() == "pass" else "❌")
 
     # ===================================
     # 📊 KPI Overview
@@ -89,15 +89,15 @@ if uploaded_files:
     st.subheader("📊 Compliance Overview")
 
     total_checks = len(df)
-    total_pass = len(df[df["Result"].str.lower()=="pass"])
-    total_fail = len(df[df["Result"].str.lower()=="fail"])
+    total_pass = len(df[df["Result"].str.lower() == "pass"])
+    total_fail = len(df[df["Result"].str.lower() == "fail"])
     pass_rate = (total_pass / total_checks * 100) if total_checks > 0 else 0
 
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Total Checks", total_checks)
-    k2.metric("✅ Passed", total_pass)
-    k3.metric("❌ Failed", total_fail)
-    k4.metric("Pass Rate", f"{pass_rate:.1f}%")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total Checks", total_checks)
+    col2.metric("✅ Passed", total_pass)
+    col3.metric("❌ Failed", total_fail)
+    col4.metric("Pass Rate", f"{pass_rate:.1f}%")
 
     # ===================================
     # 🔍 Filters
@@ -108,12 +108,10 @@ if uploaded_files:
         "Element Type", sorted(df["Element"].unique()),
         default=list(df["Element"].unique())
     )
-
     result_filter = st.sidebar.multiselect(
         "Compliance Result", ["Pass", "Fail", "Unknown"],
         default=["Pass", "Fail"]
     )
-
     file_filter = st.sidebar.multiselect(
         "Source File", sorted(df["Source_File"].unique()),
         default=list(df["Source_File"].unique())
@@ -147,7 +145,7 @@ if uploaded_files:
     )
 
     # ===================================
-    # 📈 Analytics Charts (Drag & Sort)
+    # 📈 Analytics Charts
     # ===================================
     controls1, controls2, controls3 = st.columns([1, 1, 2])
 
@@ -157,13 +155,15 @@ if uploaded_files:
     with controls2:
         orientation = st.radio(
             "Bar Orientation", ["Vertical", "Horizontal"],
-            horizontal=True, label_visibility="collapsed"
+            horizontal=True,
+            label_visibility="collapsed"
         )
 
     with controls3:
-        layout_mode = st.radio(
+        layout = st.radio(
             "Layout Mode", ["Side-by-Side", "Vertical Stack"],
-            horizontal=True, label_visibility="collapsed"
+            horizontal=True,
+            label_visibility="collapsed"
         )
 
     if show_charts:
@@ -173,7 +173,6 @@ if uploaded_files:
             "Unknown": "rgba(200,200,200,0.6)"
         }
 
-        # Pie Chart
         pie_fig = px.pie(
             pd.DataFrame({"Status": ["Pass", "Fail"], "Count": [total_pass, total_fail]}),
             names="Status", values="Count",
@@ -181,26 +180,27 @@ if uploaded_files:
             color="Status", color_discrete_map=color_map
         )
 
-        # Bar Chart
         bar_df = filtered_df.groupby(["Element", "Result"]).size().reset_index(name="Count")
         bar_fig = px.bar(
             bar_df,
-            x="Element" if orientation=="Vertical" else "Count",
-            y="Count" if orientation=="Vertical" else "Element",
-            color="Result", title="Compliance by Element Type",
-            barmode="group", orientation="v" if orientation=="Vertical" else "h",
+            x="Element" if orientation == "Vertical" else "Count",
+            y="Count" if orientation == "Vertical" else "Element",
+            color="Result",
+            title="Compliance by Element Type",
+            barmode="group",
+            orientation="v" if orientation == "Vertical" else "h",
             color_discrete_map=color_map
         )
 
         st.subheader("📊 Drag charts to rearrange")
         chart_items = {"Pass vs Fail Distribution": pie_fig, "Compliance by Element Type": bar_fig}
 
-        if layout_mode == "Side-by-Side":
-            order = sort_items(list(chart_items.keys()), direction="horizontal", key="sort_h")
+        if layout == "Side-by-Side":
+            order = sort_items(list(chart_items.keys()), direction="horizontal", key="charts_h")
             colA, colB = st.columns(2)
             for i, name in enumerate(order):
                 (colA if i == 0 else colB).plotly_chart(chart_items[name], use_container_width=True)
         else:
-            order = sort_items(list(chart_items.keys()), direction="vertical", key="sort_v")
+            order = sort_items(list(chart_items.keys()), direction="vertical", key="charts_v")
             for name in order:
                 st.plotly_chart(chart_items[name], use_container_width=True)
